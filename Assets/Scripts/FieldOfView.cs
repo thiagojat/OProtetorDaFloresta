@@ -62,12 +62,12 @@ public class FieldOfView : MonoBehaviour
                 if (!Physics2D.Raycast(transform.position, directionToTarget, distanceToTarget, obstructionMask))
                 {
                     canSeePlayer = true;
-                    Debug.Log("ta vendo o player");
+                    //Debug.Log("ta vendo o player");
                 }
                 else
                 {
                     canSeePlayer = false;
-                    print("nao ta vendo o player");
+                    //print("nao ta vendo o player");
                 }
             }
             else

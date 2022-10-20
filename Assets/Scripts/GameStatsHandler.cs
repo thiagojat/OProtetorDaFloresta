@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Curupira;
 using System;
 
 public class GameStatsHandler : MonoBehaviour
@@ -36,11 +35,9 @@ public class GameStatsHandler : MonoBehaviour
     {
         if (enemies.Count > 0)
         {
-            int i = 0;
             foreach (EnemyAIHandler enemy in enemies)
             {
-                if (enemy == null) enemies.RemoveAt(i);
-                i++;
+                if(enemy == null) enemies.Remove(enemy);
             }
 
         }

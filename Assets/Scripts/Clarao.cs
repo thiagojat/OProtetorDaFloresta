@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,21 +6,39 @@ using UnityEngine.UI;
 
 public class Clarao : MonoBehaviour
 {
-    // Start is called before the first frame update
+    [SerializeField] AudioSource shotAudio;
     void Start()
     {
-        StartCoroutine(Fade());
+        shotAudio.Play();
+        StartCoroutine(StartFade());
+        GameStatsHandler.instance.mode = GameMode.LostGame;
     }
 
+    private void OnDisable()
+    {
+        GameStatsHandler.instance.LoseGame(0);
+    }
     IEnumerator Fade()
     {
-        yield return new WaitForSecondsRealtime(2f);
-        Color c = gameObject.GetComponent<Image>().color;
-        for (float alpha = 1f; alpha >= 0; alpha -= 0.1f)
+        print("entrou no fade");
+        for (float f = 1f; f >= 0; f -= Time.deltaTime)
         {
-            c.a = alpha;
-            gameObject.GetComponent<Image>().color = c;
-            yield return new WaitForSeconds(.1f); ;
+            Color c = GetComponent<Image>().color;
+            c.a = f;
+            GetComponent<Image>().color = c;
+            yield return null;
         }
+        gameObject.SetActive(false);
+    }
+    IEnumerator StartFade()
+    {
+        yield return new WaitForSecondsRealtime(1);
+        StartFadeMethod();  
+    }
+
+    private void StartFadeMethod()
+    {
+        print("comec");
+        StartCoroutine(Fade());
     }
 }

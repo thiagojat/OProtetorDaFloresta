@@ -238,6 +238,12 @@ namespace Pathfinding {
 		#endregion
 
 		/// <summary>\copydoc Pathfinding::IAstarAI::GetRemainingPath</summary>
+		void Start()
+        {
+			base.Start();
+			enemyGFX = gameObject.transform.GetComponentInChildren<EnemyGFXScript>();
+        }
+
 		public void GetRemainingPath (List<Vector3> buffer, out bool stale) {
 			buffer.Clear();
 			buffer.Add(position);

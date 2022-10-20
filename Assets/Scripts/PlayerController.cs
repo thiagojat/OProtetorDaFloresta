@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    EnemyAIHandler targetEnemy;
+
     [SerializeField] private float moveSpeed = 5f;
     SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
@@ -15,8 +17,6 @@ public class PlayerController : MonoBehaviour
     Vector2 movement;
 
     GameStatsHandler gameManager;
-
-    [SerializeField] private Sprite[] sprites;
     Vector2 oldMovement;
 
     #region Singleton
@@ -38,13 +38,18 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         SetMovement();
+
+        //attack
         if (Input.GetButton("Fire1"))
         {
             animator.SetTrigger("Attack");
+            if (targetEnemy != null)
+            {
+                targetEnemy.Damage();
+            }
         }
 
     }
-
 
     void FixedUpdate()
     {
@@ -68,29 +73,8 @@ public class PlayerController : MonoBehaviour
         animator.SetFloat("Horizontal", oldMovement.x);
         animator.SetFloat("Vertical", oldMovement.y);
         animator.SetFloat("Speed", movement.sqrMagnitude);
-        print(movement.sqrMagnitude);
     }
 
-    private Sprite GetSprite()
-    {
-        if (lastHor == Horizontal.Left && lastVer == Vertical.Top)
-        {
-            return sprites[0];
-        }
-        else if (lastHor == Horizontal.Right && lastVer == Vertical.Top)
-        {
-            return sprites[1];
-        }
-        else if (lastHor == Horizontal.Left && lastVer == Vertical.Bottom)
-        {
-            return sprites[2];
-        }
-        else if (lastHor == Horizontal.Right && lastVer == Vertical.Bottom)
-        {
-            return sprites[3];
-        }
-        else return sprites[0];
-    }
 
     private void getLastPosition(Vector2 movement)
     {
@@ -116,17 +100,22 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.gameObject.tag == "Enemy")
         {
-            print("colidiu com o inimigo");
-        }
-        if (Input.GetButton("Fire1") && collision.gameObject.tag == "Enemy")
-        {
-            print("mataaaa");
-
-            collision.gameObject.GetComponent<EnemyAIHandler>().Damage();
+            targetEnemy = collision.gameObject.GetComponent<EnemyAIHandler>();
         }
     }
 
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.gameObject.tag == "Enemy")
+        {
+            targetEnemy = null;
+        }
+    }
 
+    public void Death()
+    {
+        animator.SetTrigger("Dead");
+    }
 }
 public enum Horizontal
 {

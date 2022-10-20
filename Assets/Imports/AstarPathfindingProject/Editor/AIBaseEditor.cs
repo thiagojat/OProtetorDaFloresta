@@ -49,7 +49,7 @@ namespace Pathfinding {
 
 			Section("EnemyGFX");
 
-			(target as AIBase).enemyGFX = EditorGUILayout.ObjectField((target as AIBase).enemyGFX, typeof(Curupira.EnemyGFXScript), true) as Curupira.EnemyGFXScript;
+			(target as AIBase).enemyGFX = EditorGUILayout.ObjectField((target as AIBase).enemyGFX, typeof(EnemyGFXScript), true) as EnemyGFXScript;
 
 			Section("Shape");
 			FloatField("radius", min: 0.01f);

@@ -17,7 +17,7 @@ namespace Pathfinding {
 	/// </summary>
 	[RequireComponent(typeof(Seeker))]
 	public abstract class AIBase : VersionedMonoBehaviour {
-		public Curupira.EnemyGFXScript enemyGFX; 
+		public EnemyGFXScript enemyGFX; 
 		/// <summary>\copydoc Pathfinding::IAstarAI::radius</summary>
 		public float radius = 0.5f;
 

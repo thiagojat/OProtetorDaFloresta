@@ -7,7 +7,9 @@ using Random = UnityEngine.Random;
 
 public class EnemyAIHandler : MonoBehaviour
 {
-    public Curupira.EnemyGFXScript enemyGFX;
+    EnemyGFXScript enemyGFX;
+    public bool playerIsInRange;
+
     AIDestinationSetter destSetter;
     AIPath aipath;
     Seeker seeker;
@@ -24,7 +26,7 @@ public class EnemyAIHandler : MonoBehaviour
     [SerializeField] private int curPath;
     private int lastPath;
     [SerializeField] int maxPaths;
-    [SerializeField] private float life;
+    private float life = 1;
     [SerializeField] private float seekVelocity;
     [SerializeField] private float huntVelocity;
     [SerializeField] private float timeSeeing;
@@ -41,7 +43,8 @@ public class EnemyAIHandler : MonoBehaviour
         fov = GetComponent<FieldOfView>();
         destSetter = GetComponent<AIDestinationSetter>();
         aipath = GetComponent<AIPath>();
-        seeker = GetComponent<Seeker>();    
+        seeker = GetComponent<Seeker>();
+        enemyGFX = GetComponentInChildren<EnemyGFXScript>();
 
         playerController = PlayerController.instance;
         animal = Animal.instance;
@@ -51,7 +54,7 @@ public class EnemyAIHandler : MonoBehaviour
         switch (startState) 
         {
             case EnemyStates.Patroling:
-                lastPath = Random.Range(0, randomSpots.Length);
+                lastPath = GetRandomPath();
                 destSetter.target = randomSpots[lastPath];
                 break;
             case EnemyStates.SeekingPlayer:
@@ -62,33 +65,34 @@ public class EnemyAIHandler : MonoBehaviour
 
     }
 
+    private int GetRandomPath()
+    {
+        return Random.Range(0, randomSpots.Length);
+    }
+
     private void Update()
     {
-        if(Vector2.Distance(gameObject.transform.position, playerTransform.position) >= fov.radius)
-        {
-            print("ta no raio");
-            SpriteRenderer spriteRenderer = gameObject.transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>();
-            spriteRenderer.enabled = true;
-            spriteRenderer.sprite = GetStatusSprite();
-        }
+        aipath.enabled = (gameManager.mode == GameMode.Normal);
+        playerIsInRange = (Vector2.Distance(gameObject.transform.position, playerTransform.position) <= fov.radius);
 
-        if(curState == EnemyStates.SeekingPlayer && fov.canSeePlayer)
+        if (curState == EnemyStates.SeekingPlayer)
         {
-
-            timeLostPlayer = 0;
-            timeSeeing+=Time.deltaTime;
-        }else if(curState == EnemyStates.SeekingPlayer && !fov.canSeePlayer)
-        {
-            timeSeeing = 0;
-            timeLostPlayer += Time.deltaTime; 
-        }
-
+            if (fov.canSeePlayer)
+            {
+                //start counting how many seconds the enemy is seeing the player
+                timeLostPlayer = 0;
+                timeSeeing += Time.deltaTime;
+            }
+            else
+            {
+                //start counting how many seconds the enemy has lost the player
+                timeSeeing = 0;
+                timeLostPlayer += Time.deltaTime;
+            }
+        } 
         if(timeSeeing > maxTimeToSee)
         {
-            print("perdeu o jogo");
-
-            clarao.SetActive(true);
-            StartCoroutine(ClaraoDelay());
+            KillPlayer();
         }
 
         if(timeLostPlayer > maxTimeLostPlayer)
@@ -116,43 +120,28 @@ public class EnemyAIHandler : MonoBehaviour
                 else
                 {
                     curPath++;
-                    int random = Random.Range(0, randomSpots.Length);
+                    int random = GetRandomPath();
                     if(random != lastPath)
-                        destSetter.target = randomSpots[Random.Range(0, randomSpots.Length)];
-                    else
                     {
-                        random = Random.Range(0, randomSpots.Length);
                         destSetter.target = randomSpots[random];
                     }
+                    else
+                    {
+                        random = GetRandomPath();
+                        destSetter.target = randomSpots[random];
+                    }
+                    lastPath = random;
                 }
             }
         }
     }
 
-    IEnumerator ClaraoDelay()
+    private void KillPlayer()
     {
-        yield return new WaitForSecondsRealtime(1f);
-        timeSeeing = 0;
-        gameManager.LoseGame(1);
+        clarao.SetActive(true);
+        playerController.Death();
     }
 
-    private Sprite GetStatusSprite()
-    {
-        if ((curState == EnemyStates.Patroling || curState == EnemyStates.Hunting) && !fov.canSeePlayer)
-        {
-            print("sprite olho fechado");
-            aipath.maxSpeed = seekVelocity * 0.8f;
-            return statusFeedback[0];
-        }
-        if (curState == EnemyStates.SeekingPlayer)
-        {
-            print("sprite olho aberto");
-            aipath.maxSpeed = seekVelocity;
-            return statusFeedback[1];
-        }
-
-        return statusFeedback[0];
-    }
 
     public void StartPatrolling()
     {
@@ -196,6 +185,7 @@ public class EnemyAIHandler : MonoBehaviour
 
     private void Death()
     {
+        AudioManager.instance.RemoveEnemyFromList(gameObject);
         curState = EnemyStates.Dead;
         aipath.enabled = false;
         destSetter.enabled = false;
